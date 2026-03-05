@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RateMyOperator — Private Jet Reviews</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0c10;
+    --paper: #f4f1eb;
+    --runway: #1a1d24;
+    --tarmac: #242830;
+    --stripe: #f0c040;
+    --verified: #3ecf8e;
+    --alert: #e05a3a;
+    --muted: #6b7280;
+    --card: #ffffff;
+    --border: #e2ddd4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); overflow-x: hidden; }
+  header { background: var(--runway); position: relative; overflow: hidden; }
+  .runway-lines {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(240,192,64,0.07) 48px, rgba(240,192,64,0.07) 50px),
+      repeating-linear-gradient(180deg, transparent, transparent 28px, rgba(255,255,255,0.03) 28px, rgba(255,255,255,0.03) 30px);
+    pointer-events: none;
+  }
+  .runway-centerline {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 100%;
+    background: repeating-linear-gradient(180deg, var(--stripe) 0px, var(--stripe) 24px, transparent 24px, transparent 44px);
+    opacity: 0.25;
+  }
+  .header-inner { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .logo { display: flex; align-items: center; gap: 0.75rem; }
+  .logo-mark { font-size: 1.4rem; }
+  .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; color: #fff; }
+  .logo-text span { color: var(--stripe); }
+  nav ul { list-style: none; display: flex; gap: 2rem; }
+  nav ul a { color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; transition: color 0.2s; }
+  nav ul a:hover { color: var(--stripe); }
+  .nav-cta { background: var(--stripe); color: var(--ink) !important; padding: 0.5rem 1.25rem; border-radius: 4px; font-weight: 600 !important; }
+  .hero { padding: 5rem 0 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+  .hero-eyebrow { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stripe); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .hero-eyebrow::before { content: ''; display: block; width: 24px; height: 1px; background: var(--stripe); }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 6vw, 5rem); line-height: 0.95; color: #fff; letter-spacing: 0.02em; margin-bottom: 1.5rem; }
+  h1 em { font-style: normal; color: var(--stripe); display: block; }
+  .hero-sub { color: rgba(255,255,255,0.5); font-size: 1rem; line-height: 1.65; max-width: 440px; margin-bottom: 2rem; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .btn-primary { background: var(--stripe); color: var(--ink); border: none; padding: 0.85rem 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+  .btn-primary:hover { background: #ffd45a; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); padding: 0.85rem 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
+  .btn-ghost:hover { border-color: var(--stripe); color: var(--stripe); }
+  .hero-stats { display: flex; flex-direction: column; gap: 1rem; }
+  .stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 1.25rem 1.5rem; }
+  .stat-card .num { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--stripe); line-height: 1; margin-bottom: 0.2rem; }
+  .stat-card .label { font-size: 0.78rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .search-section { background: var(--tarmac); padding: 1.25rem 0; border-top: 1px solid rgba(255,255,255,0.06); }
+  .search-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; gap: 0.75rem; align-items: center; }
+  .search-wrap { position: relative; flex: 1; }
+  .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.3); }
+  .search-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+  .search-input::placeholder { color: rgba(255,255,255,0.3); }
+  .search-input:focus { border-color: var(--stripe); }
+  .filter-select { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); padding: 0.75rem 1rem; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; outline: none; cursor: pointer; }
+  .main { max-width: 1200px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: 1fr 320px; gap: 3rem; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  h2 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: 0.04em; margin-bottom: 1.25rem; }
+  .tab-bar { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid var(--border); }
+  .tab { padding: 0.6rem 1.25rem; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .tab.active { color: var(--ink); border-bottom-color: var(--stripe); }
+  .operator-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: 10px; overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+  .operator-card { background: var(--card); padding: 1.25rem 1.5rem; display: grid; grid-template-columns: 2.5rem 1fr auto; gap: 1rem; align-items: center; cursor: pointer; transition: background 0.15s; }
+  .operator-card:hover { background: #fafaf8; }
+  .op-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: #ddd; text-align: center; line-height: 1; }
+  .op-name-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
+  .op-name { font-weight: 600; font-size: 0.98rem; }
+  .badge { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.18rem 0.45rem; border-radius: 3px; font-weight: 500; }
+  .badge-global { background: #eff6ff; color: #2563eb; }
+  .badge-us { background: #f0fdf4; color: #16a34a; }
+  .badge-charter { background: #fef3c7; color: #92400e; }
+  .badge-europe { background: #f5f3ff; color: #6d28d9; }
+  .badge-me { background: #fff7ed; color: #c2410c; }
+  .op-meta { font-size: 0.78rem; color: var(--muted); display: flex; gap: 0.6rem; }
+  .op-meta span { display: flex; align-items: center; gap: 0.2rem; }
+  .mini-bars { display: flex; gap: 6px; margin-top: 0.4rem; }
+  .mini-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .mini-bar-track { width: 32px; height: 4px; background: #eee; border-radius: 2px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; background: var(--stripe); border-radius: 2px; }
+  .mini-bar-label { font-size: 0.52rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .op-scores { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
+  .big-score { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; line-height: 1; }
+  .big-score .max { font-size: 0.9rem; color: var(--muted); }
+  .stars { display: flex; gap: 1px; font-size: 0.7rem; }
+  .star { color: var(--stripe); }
+  .star-empty { color: #ddd; }
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,12,16,0.75); z-index: 100; backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 1rem; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 12px; width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; box-shadow: 0 25px 80px rgba(0,0,0,0.35); animation: slideUp 0.28s ease; }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { background: var(--runway); padding: 1.75rem 2rem 0; border-radius: 12px 12px 0 0; position: relative; }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .modal-close:hover { background: rgba(255,255,255,0.2); }
+  .modal-op-name { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: #fff; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+  .modal-op-meta { color: rgba(255,255,255,0.45); font-size: 0.82rem; }
+  .modal-score-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.08); margin-top: 1.25rem; }
+  .modal-score-cell { background: rgba(255,255,255,0.04); padding: 1rem; text-align: center; }
+  .modal-score-num { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--stripe); line-height: 1; }
+  .modal-score-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
+  .modal-body { padding: 1.75rem 2rem; }
+  .reviews-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .review-item { border: 1px solid var(--border); border-radius: 8px; padding: 1.1rem; }
+  .review-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem; }
+  .reviewer { font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .review-date { font-size: 0.75rem; color: var(--muted); }
+  .verified-badge { display: inline-flex; align-items: center; gap: 0.25rem; background: #f0fdf8; color: var(--verified); font-size: 0.62rem; font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.18rem 0.45rem; border-radius: 3px; border: 1px solid rgba(62,207,142,0.25); }
+  .review-text { font-size: 0.86rem; line-height: 1.6; color: #374151; }
+  .review-tail { margin-top: 0.4rem; font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
+  /* Write review */
+  .write-review { background: var(--runway); border-radius: 10px; padding: 1.5rem; color: #fff; }
+  .write-review h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+  .write-review > p { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-bottom: 1.25rem; }
+  .rating-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+  .rating-group label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-bottom: 0.35rem; }
+  .star-picker { display: flex; gap: 3px; }
+  .star-btn { background: none; border: none; cursor: pointer; font-size: 1.25rem; color: rgba(255,255,255,0.2); transition: color 0.15s, transform 0.1s; padding: 0; }
+  .star-btn:hover, .star-btn.active { color: var(--stripe); transform: scale(1.15); }
+  .form-field { margin-bottom: 0.9rem; }
+  .form-field label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.45); margin-bottom: 0.35rem; }
+  .form-input, .form-textarea { width: 100%; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 0.7rem 0.9rem; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none; transition: border-color 0.2s; resize: none; }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.22); }
+  .form-input:focus, .form-textarea:focus { border-color: var(--stripe); }
+  .verified-note { background: rgba(62,207,142,0.08); border: 1px solid rgba(62,207,142,0.2); border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.78rem; color: var(--verified); line-height: 1.5; margin-bottom: 0.75rem; }
+  .verified-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  /* Sidebar */
+  .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+  .side-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .side-card-head { background: var(--runway); padding: 0.9rem 1.25rem; }
+  .side-card-head h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.06em; color: #fff; }
+  .side-card-body { padding: 1.1rem 1.25rem; }
+  .leaderboard-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .leaderboard-item:last-child { border-bottom: none; }
+  .lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; color: var(--stripe); width: 1.5rem; text-align: center; }
+  .lb-name { flex: 1; font-size: 0.85rem; font-weight: 500; }
+  .lb-score { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; }
+  .activity-item { padding: 0.7rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; line-height: 1.5; color: #374151; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-op { font-weight: 600; color: var(--ink); }
+  .activity-time { font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem; }
+  footer { background: var(--runway); color: rgba(255,255,255,0.4); text-align: center; padding: 2rem; font-size: 0.78rem; border-top: 3px solid var(--stripe); }
+  footer strong { color: var(--stripe); }
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--runway); color: #fff; border-left: 3px solid var(--verified); padding: 1rem 1.5rem; border-radius: 6px; font-size: 0.86rem; z-index: 200; transform: translateX(130%); transition: transform 0.3s ease; box-shadow: 0 8px 30px rgba(0,0,0,0.25); }
+  .toast.show { transform: translateX(0); }
+  @media (max-width: 900px) { .hero { grid-template-columns: 1fr; gap: 2rem; } .main { grid-template-columns: 1fr; } .hero-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="runway-lines"></div>
+  <div class="runway-centerline"></div>
+  <div class="header-inner">
+    <nav>
+      <div class="logo">
+        <span class="logo-mark">✈</span>
+        <div class="logo-text">Rate<span>My</span>Operator</div>
+      </div>
+      <ul>
+        <li><a href="#">Operators</a></li>
+        <li><a href="#">Reviews</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#" class="nav-cta" onclick="openModal('NetJets'); return false;">Write a Review</a></li>
+      </ul>
+    </nav>
+    <div class="hero">
+      <div>
+        <div class="hero-eyebrow">Cleared for Takeoff</div>
+        <h1>The World's <em>Private Jet</em> Review Platform</h1>
+        <p class="hero-sub">Honest, verified ratings from real passengers. Rate your operator on safety, service, punctuality, and value. Add your tail number for a verified flight badge.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" onclick="openModal('NetJets')">Write a Review</button>
+          <button class="btn-ghost" onclick="document.querySelector('.main').scrollIntoView({behavior:'smooth'})">Browse Operators ↓</button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-row">
+          <div class="stat-card"><div class="num">2,841</div><div class="label">Reviews</div></div>
+          <div class="stat-card"><div class="num">47</div><div class="label">Operators</div></div>
+        </div>
+        <div class="stat-card"><div class="num">1,204</div><div class="label">Verified Flights</div></div>
+        <div class="stat-card" style="background:rgba(240,192,64,0.12); border-color:rgba(240,192,64,0.25)">
+          <div class="num" style="color:#fff; font-size:1.3rem">Top Rated 2025</div>
+          <div class="label">VistaJet — 4.8 / 5.0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="search-section">
+  <div class="search-inner">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Search operator name..." oninput="filterOperators(this.value)">
+    </div>
+    <select class="filter-select" onchange="filterByRegion(this.value)">
+      <option value="all">All Regions</option>
+      <option value="us">United States</option>
+      <option value="europe">Europe</option>
+      <option value="me">Middle East</option>
+      <option value="global">Global</option>
+    </select>
+    <select class="filter-select" onchange="sortOperators(this.value)">
+      <option value="avg">Sort: Top Rated</option>
+      <option value="reviews">Most Reviews</option>
+      <option value="safety">Highest Safety</option>
+      <option value="value">Best Value</option>
+    </select>
+  </div>
+</div>
+
+<div class="main">
+  <div>
+    <div class="section-label">Operator Directory</div>
+    <h2>All Operators</h2>
+    <div class="tab-bar">
+      <div class="tab active" onclick="setTab(this,'all')">All</div>
+      <div class="tab" onclick="setTab(this,'fractional')">Fractional</div>
+      <div class="tab" onclick="setTab(this,'charter')">Charter</div>
+      <div class="tab" onclick="setTab(this,'membership')">Membership</div>
+    </div>
+    <div class="operator-list" id="operatorList"></div>
+  </div>
+  <aside class="sidebar">
+    <div class="side-card">
+      <div class="side-card-head"><h3>🏆 Top Rated 2025</h3></div>
+      <div class="side-card-body" id="leaderboard"></div>
+    </div>
+    <div class="side-card">
+      <div class="side-card-head"><h3>⚡ Recent Reviews</h3></div>
+      <div class="side-card-body">
+        <div class="activity-item"><div>New review for <span class="activity-op">VistaJet</span> — <span style="color:var(--stripe)">★★★★★</span> "Flawless transatlantic service"</div><div class="activity-time">2 min ago · ✓ Verified</div></div>
+        <div class="activity-item"><div>New review for <span class="activity-op">NetJets</span> — <span style="color:var(--stripe)">★★★★</span> "Minor delay but great crew"</div><div class="activity-time">21 min ago</div></div>
+        <div class="activity-item"><div>New review for <span class="activity-op">Flexjet</span> — <span style="color:var(--stripe)">★★★★★</span> "Red Label is exceptional"</div><div class="activity-time">1 hr ago · ✓ Verified</div></div>
+        <div class="activity-item"><div>New review for <span class="activity-op">Air Charter Service</span> — <span style="color:var(--stripe)">★★★★</span> "Very professional team"</div><div class="activity-time">3 hr ago · ✓ Verified</div></div>
+      </div>
+    </div>
+    <div class="side-card">
+      <div class="side-card-head"><h3>🛡️ Verified Reviews</h3></div>
+      <div class="side-card-body" style="font-size:0.82rem; color:#374151; line-height:1.65;">
+        <p style="margin-bottom:0.6rem">Add your <strong>tail number</strong> and <strong>date flown</strong> to earn a verified badge.</p>
+        <p>We cross-reference with the <strong>FAA aircraft registry</strong>, adding credibility to your review and boosting operator scores.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-op-name" id="modalOpName"></div>
+      <div class="modal-op-meta" id="modalOpMeta"></div>
+      <div class="modal-score-row">
+        <div class="modal-score-cell"><div class="modal-score-num" id="ms1">—</div><div class="modal-score-label">Safety</div></div>
+        <div class="modal-score-cell"><div class="modal-score-num" id="ms2">—</div><div class="modal-score-label">Service</div></div>
+        <div class="modal-score-cell"><div class="modal-score-num" id="ms3">—</div><div class="modal-score-label">Punctuality</div></div>
+        <div class="modal-score-cell"><div class="modal-score-num" id="ms4">—</div><div class="modal-score-label">Value</div></div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="section-label" style="margin-bottom:1rem">Recent Reviews</div>
+      <div class="reviews-list" id="reviewsList"></div>
+      <div class="write-review">
+        <h3>Leave a Review</h3>
+        <p>Share your experience to help fellow travellers</p>
+        <div class="rating-row">
+          <div class="rating-group"><label>Safety</label><div class="star-picker" data-cat="safety"></div></div>
+          <div class="rating-group"><label>Service</label><div class="star-picker" data-cat="service"></div></div>
+          <div class="rating-group"><label>Punctuality</label><div class="star-picker" data-cat="punctuality"></div></div>
+          <div class="rating-group"><label>Value</label><div class="star-picker" data-cat="value"></div></div>
+        </div>
+        <div class="form-field">
+          <label>Your Review</label>
+          <textarea class="form-textarea" rows="3" placeholder="Describe your experience..."></textarea>
+        </div>
+        <div class="verified-note">✈ <strong>Get Verified:</strong> Add tail number + date flown below. We'll cross-reference with FAA/ICAO records and apply a Verified badge to your review.</div>
+        <div class="verified-row">
+          <div class="form-field" style="margin-bottom:0"><label>Tail Number (optional)</label><input class="form-input" type="text" placeholder="e.g. N12345 or G-ABCD"></div>
+          <div class="form-field" style="margin-bottom:0"><label>Date Flown (optional)</label><input class="form-input" type="date"></div>
+        </div>
+        <div class="form-field" style="margin-top:0.9rem">
+          <label>Your Name / Handle</label>
+          <input class="form-input" type="text" placeholder="Anonymous or your name">
+        </div>
+        <button class="btn-primary" style="width:100%; margin-top:0.25rem" onclick="submitReview()">Submit Review</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Review submitted! Thank you for helping the community.</div>
+
+<footer>
+  <strong>RateMyOperator.com</strong> — The independent private aviation review platform.<br>
+  <span style="display:block; margin-top:0.4rem">Not affiliated with any operator. All reviews are from real passengers.</span>
+</footer>
+
+<script>
+const operators = [
+  // US Fractional
+  { name:"NetJets", region:"us", type:"fractional", reviews:742, safety:4.7, service:4.5, punctuality:4.2, value:3.8, badge:"US" },
+  { name:"Flexjet", region:"us", type:"fractional", reviews:498, safety:4.8, service:4.6, punctuality:4.3, value:3.9, badge:"US" },
+  { name:"PlaneSense", region:"us", type:"fractional", reviews:187, safety:4.6, service:4.5, punctuality:4.4, value:4.2, badge:"US" },
+  // US Membership
+  { name:"Wheels Up", region:"us", type:"membership", reviews:387, safety:4.2, service:3.9, punctuality:3.7, value:4.0, badge:"US" },
+  { name:"Sentient Jet", region:"us", type:"membership", reviews:211, safety:4.4, service:4.3, punctuality:4.1, value:4.2, badge:"US" },
+  { name:"XOJET / Vista",region:"us", type:"membership", reviews:183, safety:4.3, service:4.2, punctuality:4.0, value:4.1, badge:"US" },
+  { name:"Nicholas Air", region:"us", type:"membership", reviews:142, safety:4.5, service:4.6, punctuality:4.4, value:4.0, badge:"US" },
+  // US Charter
+  { name:"Air Charter Service", region:"global", type:"charter", reviews:294, safety:4.5, service:4.4, punctuality:4.2, value:4.4, badge:"Global" },
+  { name:"Directional Aviation", region:"us", type:"charter", reviews:168, safety:4.3, service:4.2, punctuality:3.9, value:3.8, badge:"US" },
+  { name:"Clay Lacy Aviation", region:"us", type:"charter", reviews:203, safety:4.6, service:4.5, punctuality:4.3, value:4.0, badge:"US" },
+  { name:"Jet Edge", region:"us", type:"charter", reviews:156, safety:4.4, service:4.3, punctuality:4.1, value:4.1, badge:"US" },
+  { name:"Privaira", region:"us", type:"charter", reviews:89, safety:4.3, service:4.2, punctuality:4.0, value:4.3, badge:"US" },
+  // Global
+  { name:"VistaJet", region:"global", type:"membership", reviews:612, safety:4.9, service:4.8, punctuality:4.7, value:4.3, badge:"Global" },
+  { name:"Jet Aviation", region:"global", type:"charter", reviews:203, safety:4.5, service:4.3, punctuality:4.1, value:3.9, badge:"Global" },
+  { name:"Signature Aviation", region:"global", type:"charter", reviews:167, safety:4.4, service:4.2, punctuality:4.0, value:4.0, badge:"Global" },
+  { name:"ExecuJet", region:"global", type:"charter", reviews:178, safety:4.5, service:4.4, punctuality:4.2, value:4.0, badge:"Global" },
+  // Europe
+  { name:"Luxaviation", region:"europe", type:"charter", reviews:189, safety:4.6, service:4.5, punctuality:4.3, value:3.9, badge:"Europe" },
+  { name:"TAG Aviation", region:"europe", type:"charter", reviews:156, safety:4.7, service:4.6, punctuality:4.4, value:3.8, badge:"Europe" },
+  { name:"London Executive Aviation", region:"europe", type:"charter", reviews:134, safety:4.5, service:4.4, punctuality:4.2, value:4.1, badge:"Europe" },
+  { name:"Air Hamburg", region:"europe", type:"charter", reviews:112, safety:4.6, service:4.5, punctuality:4.5, value:4.2, badge:"Europe" },
+  { name:"Gestair", region:"europe", type:"charter", reviews:98, safety:4.4, service:4.3, punctuality:4.1, value:4.0, badge:"Europe" },
+  { name:"Elit'Avia", region:"europe", type:"charter", reviews:87, safety:4.7, service:4.6, punctuality:4.3, value:3.9, badge:"Europe" },
+  // Middle East
+  { name:"Abu Dhabi Aviation", region:"me", type:"charter", reviews:145, safety:4.6, service:4.7, punctuality:4.4, value:3.9, badge:"Middle East" },
+  { name:"Empire Aviation Group", region:"me", type:"charter", reviews:118, safety:4.5, service:4.6, punctuality:4.3, value:4.0, badge:"Middle East" },
+  { name:"DC Aviation Al-Futtaim", region:"me", type:"charter", reviews:96, safety:4.7, service:4.8, punctuality:4.5, value:3.8, badge:"Middle East" },
+];
+
+function avg(op){ return ((op.safety+op.service+op.punctuality+op.value)/4).toFixed(1); }
+function stars(s){ const f=Math.round(parseFloat(s)); return Array(5).fill(0).map((_,i)=>`<span class="${i<f?'star':'star-empty'}">★</span>`).join(''); }
+function badgeClass(b){ return {Global:'badge-global',US:'badge-us',Europe:'badge-europe','Middle East':'badge-me'}[b]||'badge-charter'; }
+
+let currentFilter = {region:'all', type:'all', query:'', sort:'avg'};
+
+function applyFilters(){
+  let list = [...operators];
+  if(currentFilter.region !== 'all') list = list.filter(o=>o.region===currentFilter.region);
+  if(currentFilter.type !== 'all') list = list.filter(o=>o.type===currentFilter.type);
+  if(currentFilter.query) list = list.filter(o=>o.name.toLowerCase().includes(currentFilter.query.toLowerCase()));
+  list.sort((a,b)=>{
+    if(currentFilter.sort==='avg') return avg(b)-avg(a);
+    if(currentFilter.sort==='reviews') return b.reviews-a.reviews;
+    if(currentFilter.sort==='safety') return b.safety-a.safety;
+    if(currentFilter.sort==='value') return b.value-a.value;
+    return 0;
+  });
+  renderOperators(list);
+}
+
+function renderOperators(list){
+  const el = document.getElementById('operatorList');
+  if(!list.length){ el.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted)">No operators found</div>'; return; }
+  el.innerHTML = list.map((op,i)=>`
+    <div class="operator-card" onclick="openModal('${op.name.replace(/'/g,"\\'")}')">
+      <div class="op-rank">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <div class="op-name-row">
+          <span class="op-name">${op.name}</span>
+          <span class="badge ${badgeClass(op.badge)}">${op.badge}</span>
+          <span class="badge badge-charter">${op.type}</span>
+        </div>
+        <div class="op-meta">
+          <span>${op.reviews} reviews</span>
+          <span>· Avg ${avg(op)}/5.0</span>
+        </div>
+        <div class="mini-bars">
+          ${['safety','service','punctuality','value'].map(cat=>`
+            <div class="mini-bar-wrap">
+              <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${(op[cat]/5)*100}%"></div></div>
+              <div class="mini-bar-label">${cat.slice(0,3)}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="op-scores">
+        <div class="big-score">${avg(op)}<span class="max">/5</span></div>
+        <div class="stars">${stars(avg(op))}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderLeaderboard(){
+  const sorted=[...operators].sort((a,b)=>avg(b)-avg(a)).slice(0,5);
+  document.getElementById('leaderboard').innerHTML = sorted.map((op,i)=>`
+    <div class="leaderboard-item" onclick="openModal('${op.name.replace(/'/g,"\\'")}')">
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-name">${op.name}</div>
+      <div class="lb-score">${avg(op)}</div>
+    </div>`).join('');
+}
+
+function filterOperators(q){ currentFilter.query=q; applyFilters(); }
+function filterByRegion(r){ currentFilter.region=r; applyFilters(); }
+function sortOperators(s){ currentFilter.sort=s; applyFilters(); }
+function setTab(el,type){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active'); currentFilter.type=type; applyFilters(); }
+
+const sampleReviews = {
+  "VistaJet":[
+    {name:"James H.",date:"Jan 2025",text:"Truly world-class. Crew on my LHR–DXB flight were exceptional — attentive without being intrusive. Aircraft was immaculate.",verified:true,tail:"9H-VFN"},
+    {name:"Sarah M.",date:"Dec 2024",text:"Best private jet experience I've had. The catering was outstanding and scheduling team extremely responsive.",verified:false,tail:null}
+  ],
+  "NetJets":[
+    {name:"Robert K.",date:"Feb 2025",text:"Reliable and professional. Minor 40-minute delay but FBO experience was great and crew communicated proactively.",verified:true,tail:"N450QS"},
+    {name:"Anonymous",date:"Jan 2025",text:"Good overall. Value for fractional hours has declined but fleet quality remains excellent.",verified:false,tail:null}
+  ],
+  "Flexjet":[
+    {name:"Catherine L.",date:"Feb 2025",text:"Red Label exceeded every expectation. The cabin crew were phenomenal and the Gulfstream G650 was in perfect condition.",verified:true,tail:"N820FX"},
+    {name:"M. Thornton",date:"Jan 2025",text:"Consistently excellent. 12 flights this year, zero complaints.",verified:false,tail:null}
+  ]
+};
+
+function openModal(name){
+  const op = operators.find(o=>o.name===name);
+  if(!op) return;
+  document.getElementById('modalOpName').textContent = op.name;
+  document.getElementById('modalOpMeta').textContent = `${op.badge} · ${op.type.charAt(0).toUpperCase()+op.type.slice(1)} · ${op.reviews} reviews`;
+  document.getElementById('ms1').textContent = op.safety.toFixed(1);
+  document.getElementById('ms2').textContent = op.service.toFixed(1);
+  document.getElementById('ms3').textContent = op.punctuality.toFixed(1);
+  document.getElementById('ms4').textContent = op.value.toFixed(1);
+  const revs = sampleReviews[name] || [{name:"Anonymous",date:"Recent",text:"Good experience overall. Professional crew and comfortable cabin.",verified:false,tail:null}];
+  document.getElementById('reviewsList').innerHTML = revs.map(r=>`
+    <div class="review-item">
+      <div class="review-top">
+        <div class="reviewer">${r.name} ${r.verified?'<span class="verified-badge">✓ Verified</span>':''}</div>
+        <div class="review-date">${r.date}</div>
+      </div>
+      <div class="review-text">${r.text}</div>
+      ${r.tail?`<div class="review-tail">✈ ${r.tail}</div>`:''}
+    </div>`).join('');
+  document.querySelectorAll('.star-picker').forEach(picker=>{
+    picker.innerHTML = Array(5).fill(0).map((_,i)=>`<button class="star-btn" data-val="${i+1}" onclick="setStars(this)">★</button>`).join('');
+  });
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setStars(btn){
+  const picker = btn.closest('.star-picker');
+  const val = parseInt(btn.dataset.val);
+  picker.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active', i<val));
+}
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function closeModalOutside(e){ if(e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+function submitReview(){
+  closeModal();
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'), 3500);
+}
+
+applyFilters();
+renderLeaderboard();
+</script>
+</body>
+</html>

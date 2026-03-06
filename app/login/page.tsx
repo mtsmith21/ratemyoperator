@@ -31,32 +31,78 @@ export default function LoginPage() {
       <div style={{ background: '#ffffff', borderRadius: '12px', padding: '2.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
           <div style={{ fontSize: '2rem' }}>✈</div>
-          <h1 style={{ fontSize: '1.8rem', color: '#1a1d24', margin: '0.25rem 0 0' }}>Rate<span style={{ color: '#f0c040' }}>My</span>Operator</h1>
+          <h1 style={{ fontSize: '1.8rem', color: '#1a1d24', margin: '0.25rem 0 0' }}>
+            Rate<span style={{ color: '#f0c040' }}>My</span>Operator
+          </h1>
           <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>Private Jet Review Platform</p>
         </div>
+
         <div style={{ display: 'flex', background: '#f4f1eb', borderRadius: '8px', padding: '4px', marginBottom: '1.75rem' }}>
           {['Sign in', 'Sign up'].map((tab, i) => (
-            <button key={tab} onClick={() => setIsSignUp(i === 1)} style={{ flex: 1, padding: '0.6rem', border: 'none', borderRadius: '6px', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', background: (i === 1) === isSignUp ? '#1a1d24' : 'transparent', color: (i === 1) === isSignUp ? '#f0c040' : '#6b7280' }}>{tab}</button>
+            <button
+              key={tab}
+              onClick={() => setIsSignUp(i === 1)}
+              style={{
+                flex: 1,
+                padding: '0.6rem',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                background: (i === 1) === isSignUp ? '#1a1d24' : 'transparent',
+                color: (i === 1) === isSignUp ? '#f0c040' : '#6b7280'
+              }}
+            >{tab}</button>
           ))}
         </div>
+
         <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email address</label>
-          <input type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }} />
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Email address
+          </label>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }}
+          />
         </div>
+
         <div style={{ marginBottom: '1.5rem' }}>
-          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
-          <input type="password" placeholder="Min. 6 characters" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSubmit()} style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }} />
+          <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="Min. 6 characters"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }}
+          />
         </div>
-        <button onClick={handleSubmit} disabled={loading} style={{ width: '100%', padding: '0.85rem', background: loading ? '#9ca3af' : '#1a1d24', color: '#f0c040', border: 'none', borderRadius: '6px', fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: loading ? 'not-allowed' : 'pointer' }}>
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{ width: '100%', padding: '0.85rem', background: loading ? '#9ca3af' : '#1a1d24', color: '#f0c040', border: 'none', borderRadius: '6px', fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
           {loading ? 'Please wait...' : isSignUp ? 'Create account' : 'Sign in'}
         </button>
+
         {message && (
           <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: isError ? '#fef2f2' : '#f0fdf4', border: `1.5px solid ${isError ? '#fca5a5' : '#86efac'}`, borderRadius: '6px', fontSize: '0.88rem', color: isError ? '#991b1b' : '#166534', fontWeight: 500 }}>
             {message}
           </div>
         )}
+
         <p style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.82rem', color: '#9ca3af' }}>
-          By signing up you agree to our <a href="/terms" style={{ color: '#1a1d24', fontWeight: 600 }}>Terms</a> and <a href="/privacy" style={{ color: '#1a1d24', fontWeight: 600 }}>Privacy Policy</a>
+          By signing up you agree to our{' '}
+          <a href="/terms" style={{ color: '#1a1d24', fontWeight: 600 }}>Terms</a>
+          {' '}and{' '}
+          <a href="/privacy" style={{ color: '#1a1d24', fontWeight: 600 }}>Privacy Policy</a>
         </p>
       </div>
     </main>

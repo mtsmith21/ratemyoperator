@@ -2,233 +2,178 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 
-interface Operator {
+interface Review {
   id: string;
-  name: string;
-  fleet_size: string;
+  operator_id: string;
+  reviewer_name: string;
+  safety_score: number;
+  service_score: number;
+  punctuality_score: number;
+  value_score: number;
+  review_text: string;
+  tail_number: string;
+  date_flown: string;
+  is_approved: boolean;
+  is_verified: boolean;
+  created_at: string;
+  operators: { name: string };
 }
 
-function StarRating({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  const [hover, setHover] = useState(0);
-  return (
-    <div style={{ marginBottom: '1.25rem' }}>
-      <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        {label}
-      </label>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        {[1, 2, 3, 4, 5].map(star => (
-          <button
-            key={star}
-            onClick={() => onChange(star)}
-            onMouseEnter={() => setHover(star)}
-            onMouseLeave={() => setHover(0)}
-            style={{ fontSize: '1.75rem', background: 'none', border: 'none', cursor: 'pointer', color: star <= (hover || value) ? '#f0c040' : '#e2ddd4', padding: 0, lineHeight: 1 }}
-          >★</button>
-        ))}
-        <span style={{ fontSize: '0.85rem', color: '#6b7280', alignSelf: 'center', marginLeft: '0.5rem' }}>
-          {(hover || value) === 0 ? 'Select rating' : ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][hover || value]}
-        </span>
-      </div>
-    </div>
-  );
-}
+const ADMIN_EMAIL = 'mtsmith21@gmail.com';
 
-export default function WriteReviewPage() {
-  const [operators, setOperators] = useState<Operator[]>([]);
-  const [search, setSearch] = useState('');
-  const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [safety, setSafety] = useState(0);
-  const [service, setService] = useState(0);
-  const [punctuality, setPunctuality] = useState(0);
-  const [value, setValue] = useState(0);
-  const [reviewText, setReviewText] = useState('');
-  const [tailNumber, setTailNumber] = useState('');
-  const [dateFlown, setDateFlown] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
+export default function AdminPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [filter, setFilter] = useState<'pending' | 'approved' | 'all'>('pending');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) window.location.href = '/login';
-      else setUser(data.user);
-    });
-    supabase.from('operators').select('id, name, fleet_size').order('name').then(({ data }) => {
-      if (data) setOperators(data);
+      if (!data.user || data.user.email !== ADMIN_EMAIL) {
+        window.location.href = '/';
+      } else {
+        setUser(data.user);
+        loadReviews();
+      }
     });
   }, []);
 
-  const filtered = operators.filter(o => o.name.toLowerCase().includes(search.toLowerCase())).slice(0, 8);
-
-  async function handleSubmit() {
-    if (!selectedOperator) return setError('Please select an operator.');
-    if (!safety || !service || !punctuality || !value) return setError('Please rate all four categories.');
-    if (reviewText.length < 20) return setError('Please write at least 20 characters in your review.');
-
-    setLoading(true);
-    setError('');
-
-    const { error: err } = await supabase.from('reviews').insert({
-      operator_id: selectedOperator.id,
-      user_id: user.id,
-      safety_score: safety,
-      service_score: service,
-      punctuality_score: punctuality,
-      value_score: value,
-      review_text: reviewText,
-      tail_number: tailNumber || null,
-      date_flown: dateFlown || null,
-      is_approved: false,
-      is_verified: false,
-    });
-
+  async function loadReviews() {
+    const { data } = await supabase
+      .from('reviews')
+      .select('*, operators(name)')
+      .order('created_at', { ascending: false });
+    if (data) setReviews(data as any);
     setLoading(false);
-    if (err) setError(err.message);
-    else setSubmitted(true);
   }
 
-  if (submitted) {
-    return (
-      <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', padding: '1rem' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '3rem', maxWidth: '480px', width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-          <h2 style={{ fontSize: '1.5rem', color: '#1a1d24', marginBottom: '0.75rem' }}>Review Submitted!</h2>
-          <p style={{ color: '#6b7280', marginBottom: '2rem', lineHeight: 1.6 }}>
-            Thank you for your review of <strong>{selectedOperator?.name}</strong>. It will be published after a quick review by our team — usually within 24 hours.
-          </p>
-          <a href="/" style={{ display: 'inline-block', padding: '0.75rem 2rem', background: '#1a1d24', color: '#f0c040', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Back to Operators
-          </a>
-        </div>
-      </main>
-    );
+  async function approve(id: string) {
+    await supabase.from('reviews').update({ is_approved: true }).eq('id', id);
+    setReviews(prev => prev.map(r => r.id === id ? { ...r, is_approved: true } : r));
   }
+
+  async function reject(id: string) {
+    await supabase.from('reviews').delete().eq('id', id);
+    setReviews(prev => prev.filter(r => r.id !== id));
+  }
+
+  const filtered = reviews.filter(r => {
+    if (filter === 'pending') return !r.is_approved;
+    if (filter === 'approved') return r.is_approved;
+    return true;
+  });
+
+  const pending = reviews.filter(r => !r.is_approved).length;
+
+  function stars(n: number) {
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
+  }
+
+  function avg(r: Review) {
+    return ((r.safety_score + r.service_score + r.punctuality_score + r.value_score) / 4).toFixed(1);
+  }
+
+  if (loading) return (
+    <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#f0c040', fontFamily: 'sans-serif' }}>Loading...</p>
+    </main>
+  );
 
   return (
     <main style={{ minHeight: '100vh', background: '#1a1d24', fontFamily: 'sans-serif', padding: '2rem 1rem' }}>
-      <div style={{ maxWidth: '580px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-        <a href="/" style={{ color: '#f0c040', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1.5rem' }}>← Back to operators</a>
-
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '2.5rem', boxShadow: '0 20px 60px rgba(0,0,0,0.4)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <div style={{ fontSize: '1.5rem' }}>✈</div>
-            <h1 style={{ fontSize: '1.6rem', color: '#1a1d24', margin: '0.25rem 0 0' }}>Write a Review</h1>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>Share your experience to help other flyers</p>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+          <div>
+            <h1 style={{ color: '#fff', fontSize: '1.8rem', margin: 0 }}>
+              ✈ <span style={{ color: '#f0c040' }}>Admin</span> — Review Moderation
+            </h1>
+            <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>ratemyoperator.com</p>
           </div>
-
-          {/* Operator search */}
-          <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Operator *
-            </label>
-            {selectedOperator ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem', border: '1.5px solid #f0c040', borderRadius: '6px', background: '#fffbeb' }}>
-                <span style={{ fontWeight: 600, color: '#1a1d24' }}>{selectedOperator.name}</span>
-                <button onClick={() => { setSelectedOperator(null); setSearch(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', fontSize: '1.1rem' }}>✕</button>
-              </div>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  placeholder="Search for an operator..."
-                  value={search}
-                  onChange={e => { setSearch(e.target.value); setShowDropdown(true); }}
-                  onFocus={() => setShowDropdown(true)}
-                  style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }}
-                />
-                {showDropdown && search && filtered.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1.5px solid #e2ddd4', borderRadius: '6px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 10, marginTop: '4px' }}>
-                    {filtered.map(op => (
-                      <div
-                        key={op.id}
-                        onClick={() => { setSelectedOperator(op); setSearch(op.name); setShowDropdown(false); }}
-                        style={{ padding: '0.75rem 1rem', cursor: 'pointer', borderBottom: '1px solid #f4f1eb', fontSize: '0.95rem', color: '#1a1d24' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f4f1eb')}
-                        onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
-                      >
-                        {op.name}
-                        <span style={{ fontSize: '0.75rem', color: '#9ca3af', marginLeft: '0.5rem', textTransform: 'capitalize' }}>({op.fleet_size})</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Star ratings */}
-          <div style={{ borderTop: '1px solid #f4f1eb', paddingTop: '1.5rem', marginBottom: '0.5rem' }}>
-            <StarRating label="Safety" value={safety} onChange={setSafety} />
-            <StarRating label="Service" value={service} onChange={setService} />
-            <StarRating label="Punctuality" value={punctuality} onChange={setPunctuality} />
-            <StarRating label="Value for Money" value={value} onChange={setValue} />
-          </div>
-
-          {/* Review text */}
-          <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Your Review *
-            </label>
-            <textarea
-              placeholder="Describe your experience — aircraft condition, crew professionalism, departure punctuality, catering..."
-              value={reviewText}
-              onChange={e => setReviewText(e.target.value)}
-              rows={5}
-              style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box', resize: 'vertical', fontFamily: 'sans-serif' }}
-            />
-            <p style={{ fontSize: '0.78rem', color: '#9ca3af', margin: '0.25rem 0 0' }}>{reviewText.length} characters (minimum 20)</p>
-          </div>
-
-          {/* Optional fields */}
-          <div style={{ background: '#f4f1eb', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-            <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
-              Optional — helps verify your review
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.3rem' }}>Tail Number</label>
-                <input
-                  type="text"
-                  placeholder="e.g. N450QS"
-                  value={tailNumber}
-                  onChange={e => setTailNumber(e.target.value.toUpperCase())}
-                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.9rem', color: '#1a1d24', boxSizing: 'border-box', fontFamily: 'monospace' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.3rem' }}>Date Flown</label>
-                <input
-                  type="date"
-                  value={dateFlown}
-                  onChange={e => setDateFlown(e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.9rem', color: '#1a1d24', boxSizing: 'border-box' }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {error && (
-            <div style={{ marginBottom: '1rem', padding: '0.75rem 1rem', background: '#fef2f2', border: '1.5px solid #fca5a5', borderRadius: '6px', fontSize: '0.88rem', color: '#991b1b', fontWeight: 500 }}>
-              {error}
+          {pending > 0 && (
+            <div style={{ background: '#f0c040', color: '#1a1d24', borderRadius: '999px', padding: '0.4rem 1rem', fontWeight: 700, fontSize: '0.9rem' }}>
+              {pending} pending
             </div>
           )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            style={{ width: '100%', padding: '0.85rem', background: loading ? '#9ca3af' : '#1a1d24', color: '#f0c040', border: 'none', borderRadius: '6px', fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', cursor: loading ? 'not-allowed' : 'pointer' }}
-          >
-            {loading ? 'Submitting...' : 'Submit Review'}
-          </button>
-
-          <p style={{ marginTop: '1rem', textAlign: 'center', fontSize: '0.78rem', color: '#9ca3af' }}>
-            Reviews are checked by our team before publishing. Only genuine flight experiences are accepted.
-          </p>
         </div>
+
+        {/* Filter tabs */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
+          {(['pending', 'approved', 'all'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{ padding: '0.5rem 1.25rem', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize', background: filter === f ? '#f0c040' : '#242830', color: filter === f ? '#1a1d24' : '#9ca3af' }}
+            >{f} {f === 'pending' ? `(${pending})` : f === 'approved' ? `(${reviews.filter(r => r.is_approved).length})` : `(${reviews.length})`}</button>
+          ))}
+        </div>
+
+        {/* Reviews */}
+        {filtered.length === 0 ? (
+          <div style={{ background: '#242830', borderRadius: '12px', padding: '3rem', textAlign: 'center' }}>
+            <p style={{ color: '#6b7280', fontSize: '1rem' }}>
+              {filter === 'pending' ? '🎉 No pending reviews — you\'re all caught up!' : 'No reviews found.'}
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {filtered.map(review => (
+              <div key={review.id} style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', borderLeft: `4px solid ${review.is_approved ? '#3ecf8e' : '#f0c040'}` }}>
+
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1a1d24' }}>{review.operators?.name}</h3>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#9ca3af' }}>
+                      {new Date(review.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                      {review.date_flown && ` · Flew: ${new Date(review.date_flown).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}`}
+                      {review.tail_number && ` · Tail: ${review.tail_number}`}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#1a1d24' }}>{avg(review)}</span>
+                    <span style={{ color: '#f0c040', fontSize: '1rem' }}>{stars(Math.round(parseFloat(avg(review))))}</span>
+                  </div>
+                </div>
+
+                {/* Scores */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', marginBottom: '1rem', background: '#f4f1eb', borderRadius: '8px', padding: '0.75rem' }}>
+                  {[['Safety', review.safety_score], ['Service', review.service_score], ['Punctuality', review.punctuality_score], ['Value', review.value_score]].map(([label, score]) => (
+                    <div key={label as string} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+                      <div style={{ color: '#f0c040', fontSize: '0.9rem' }}>{stars(score as number)}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Review text */}
+                <p style={{ margin: '0 0 1rem', color: '#374151', lineHeight: 1.6, fontSize: '0.95rem' }}>{review.review_text}</p>
+
+                {/* Actions */}
+                {!review.is_approved ? (
+                  <div style={{ display: 'flex', gap: '0.75rem' }}>
+                    <button
+                      onClick={() => approve(review.id)}
+                      style={{ flex: 1, padding: '0.65rem', background: '#1a1d24', color: '#f0c040', border: 'none', borderRadius: '6px', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                    >✓ Approve</button>
+                    <button
+                      onClick={() => reject(review.id)}
+                      style={{ flex: 1, padding: '0.65rem', background: '#fef2f2', color: '#991b1b', border: '1.5px solid #fca5a5', borderRadius: '6px', fontSize: '0.88rem', fontWeight: 700, cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                    >✕ Reject</button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#3ecf8e', fontWeight: 600, fontSize: '0.88rem' }}>✓ Published</span>
+                    <button
+                      onClick={() => reject(review.id)}
+                      style={{ padding: '0.4rem 1rem', background: '#fef2f2', color: '#991b1b', border: '1.5px solid #fca5a5', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                    >Remove</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );

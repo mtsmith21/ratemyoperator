@@ -119,7 +119,6 @@ export default function WriteReviewPage() {
             <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>Share your experience to help other flyers</p>
           </div>
 
-          {/* Operator search */}
           <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Operator *
@@ -159,7 +158,6 @@ export default function WriteReviewPage() {
             )}
           </div>
 
-          {/* Star ratings */}
           <div style={{ borderTop: '1px solid #f4f1eb', paddingTop: '1.5rem', marginBottom: '0.5rem' }}>
             <StarRating label="Safety" value={safety} onChange={setSafety} />
             <StarRating label="Service" value={service} onChange={setService} />
@@ -167,7 +165,6 @@ export default function WriteReviewPage() {
             <StarRating label="Value for Money" value={value} onChange={setValue} />
           </div>
 
-          {/* Review text */}
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Your Review *
@@ -182,7 +179,6 @@ export default function WriteReviewPage() {
             <p style={{ fontSize: '0.78rem', color: '#9ca3af', margin: '0.25rem 0 0' }}>{reviewText.length} characters (minimum 20)</p>
           </div>
 
-          {/* Optional fields */}
           <div style={{ background: '#f4f1eb', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
               Optional — helps verify your review

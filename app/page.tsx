@@ -6,7 +6,7 @@ interface Operator {
   id: string;
   name: string;
   fleet_size: string;
-  state: string;
+  region: string;
 }
 
 const FEATURED_NAMES = [
@@ -32,7 +32,7 @@ export default function HomePage() {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
     supabase
       .from('operators')
-      .select('id, name, fleet_size, state')
+      .select('id, name, fleet_size, region')
       .order('name')
       .then(({ data }) => {
         if (data) setOperators(data);
@@ -194,7 +194,7 @@ function OperatorCard({ op, rank, featured }: { op: Operator; rank?: number; fea
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ color: '#fff', fontWeight: 600, fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{op.name}</div>
         <div style={{ color: '#6b7280', fontSize: '0.78rem', marginTop: '0.15rem', textTransform: 'capitalize' }}>
-          {op.fleet_size}{op.state ? ` · ${op.state}` : ''}
+          {op.fleet_size}{op.region ? ` · ${op.region}` : ''}
         </div>
       </div>
       <a href={`/review`} style={{ background: '#1a1d24', color: '#f0c040', border: '1px solid #f0c040', borderRadius: '5px', padding: '0.3rem 0.7rem', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>

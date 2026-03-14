@@ -176,5 +176,4 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
     </main>
   );
 }
-```
 

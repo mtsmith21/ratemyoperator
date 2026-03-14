@@ -44,9 +44,11 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
       .ilike('name', `%${name}%`)
       .limit(1)
       .maybeSingle()
-      .then(({ data, error }) => {
-        if (error || !data) setError('Operator not found.');
-        else {
+      ..then(({ data, error }) => {
+        if (error || !data) {
+          setError('Operator not found.');
+          setLoading(false);
+        } else {
           setOperator(data);
           supabase
             .from('reviews')

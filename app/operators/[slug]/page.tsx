@@ -23,8 +23,11 @@ interface Review {
 }
 
 function Stars({ score }: { score: number }) {
-  const rounded = Math.round(score);
-  return <span style={{ color: '#f0c040' }}>{'★'.repeat(rounded)}{'☆'.repeat(5 - rounded)}</span>;
+  return (
+    <span style={{ color: '#f0c040' }}>
+      {'★'.repeat(Math.round(score))}{'☆'.repeat(5 - Math.round(score))}
+    </span>
+  );
 }
 
 export default function OperatorPage({ params }: { params: { slug: string } }) {
@@ -34,34 +37,29 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    async function load() {
-      const name = decodeURIComponent(params.slug).replace(/-/g, ' ');
+    const raw = decodeURIComponent(params.slug).replace(/-/g, ' ');
       const { data: op, error: opErr } = await supabase
         .from('operators')
         .select('id, name, fleet_size, region, aircraft_count')
-        .ilike('name', '%' + name + '%')
+        .ilike('name', raw.split('').join('%'))
         .limit(1)
         .maybeSingle();
-
-      if (opErr || !op) {
-        setError('Operator not found.');
-        setLoading(false);
-        return;
-      }
-
-      setOperator(op);
-
-      const { data: revs } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('operator_id', op.id)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false });
-
-      if (revs) setReviews(revs);
-      setLoading(false);
-    }
-    load();
+      .then(({ data, error }) => {
+        if (error || !data) setError('Operator not found.');
+        else {
+          setOperator(data);
+          supabase
+            .from('reviews')
+            .select('*')
+            .eq('operator_id', data.id)
+            .eq('is_approved', true)
+            .order('created_at', { ascending: false })
+            .then(({ data: reviews }) => {
+              if (reviews) setReviews(reviews);
+              setLoading(false);
+            });
+        }
+      });
   }, [params.slug]);
 
   function avg(field: keyof Review) {
@@ -120,17 +118,13 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
 
           {overallAvg && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1.5rem', background: '#1a1d24', borderRadius: '8px', padding: '1rem' }}>
-              {(['Safety', 'Service', 'Punctuality', 'Value'] as const).map((label, i) => {
-                const fields: (keyof Review)[] = ['safety_score', 'service_score', 'punctuality_score', 'value_score'];
-                const score = avg(fields[i]);
-                return (
-                  <div key={label} style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{label}</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{score.toFixed(1)}</div>
-                    <Stars score={score} />
-                  </div>
-                );
-              })}
+              {[['Safety', avg('safety_score')], ['Service', avg('service_score')], ['Punctuality', avg('punctuality_score')], ['Value', avg('value_score')]].map(([label, score]) => (
+                <div key={label as string} style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{label}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{(score as number).toFixed(1)}</div>
+                  <Stars score={score as number} />
+                </div>
+              ))}
             </div>
           )}
 
@@ -156,15 +150,12 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
               <div key={review.id} style={{ background: '#242830', borderRadius: '12px', padding: '1.5rem', border: '1px solid #2a2d35' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                    {(['Safety', 'Service', 'Punctuality', 'Value'] as const).map((label, i) => {
-                      const fields: (keyof Review)[] = ['safety_score', 'service_score', 'punctuality_score', 'value_score'];
-                      return (
-                        <div key={label}>
-                          <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
-                          <Stars score={review[fields[i]] as number} />
-                        </div>
-                      );
-                    })}
+                    {[['Safety', review.safety_score], ['Service', review.service_score], ['Punctuality', review.punctuality_score], ['Value', review.value_score]].map(([label, score]) => (
+                      <div key={label as string}>
+                        <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
+                        <Stars score={score as number} />
+                      </div>
+                    ))}
                   </div>
                   <div style={{ color: '#6b7280', fontSize: '0.78rem' }}>
                     {review.date_flown && `Flew ${new Date(review.date_flown).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} · `}
@@ -181,3 +172,4 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
     </main>
   );
 }
+

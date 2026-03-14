@@ -41,8 +41,9 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
     supabase
       .from('operators')
       .select('id, name, fleet_size, region, aircraft_count')
-      .ilike('name', name)
-      .single()
+      .ilike('name', `%${name}%`)
+      .limit(1)
+      .maybeSingle()
       .then(({ data, error }) => {
         if (error || !data) setError('Operator not found.');
         else {

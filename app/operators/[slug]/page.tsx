@@ -37,29 +37,36 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const raw = decodeURIComponent(params.slug).replace(/-/g, ' ');
+    async function fetchData() {
+      const raw = decodeURIComponent(params.slug).replace(/-/g, ' ');
+
       const { data: op, error: opErr } = await supabase
         .from('operators')
         .select('id, name, fleet_size, region, aircraft_count')
-        .ilike('name', raw.split('').join('%'))
+        .ilike('name', raw)
         .limit(1)
         .maybeSingle();
-      .then(({ data, error }) => {
-        if (error || !data) setError('Operator not found.');
-        else {
-          setOperator(data);
-          supabase
-            .from('reviews')
-            .select('*')
-            .eq('operator_id', data.id)
-            .eq('is_approved', true)
-            .order('created_at', { ascending: false })
-            .then(({ data: reviews }) => {
-              if (reviews) setReviews(reviews);
-              setLoading(false);
-            });
-        }
-      });
+
+      if (opErr || !op) {
+        setError('Operator not found.');
+        setLoading(false);
+        return;
+      }
+
+      setOperator(op);
+
+      const { data: reviewData } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('operator_id', op.id)
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false });
+
+      if (reviewData) setReviews(reviewData);
+      setLoading(false);
+    }
+
+    fetchData();
   }, [params.slug]);
 
   function avg(field: keyof Review) {
@@ -172,4 +179,3 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
     </main>
   );
 }
-

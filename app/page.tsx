@@ -40,23 +40,10 @@ export default function HomePage() {
         </a>
         <a href="/review" style={{ background: '#f0c040', color: '#1a1d24', padding: '0.4rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>Write a Review</a>
       </header>
-
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1.5rem' }}>
-        <h1 style={{ color: '#fff', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>
-          Private Aviation Operators
-        </h1>
-        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-          Find and review private jet operators worldwide.
-        </p>
-
-        <input
-          type="text"
-          placeholder="Search operators or regions..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2d35', background: '#242830', color: '#fff', fontSize: '0.95rem', marginBottom: '1.5rem', boxSizing: 'border-box' }}
-        />
-
+        <h1 style={{ color: '#fff', fontSize: '2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Private Aviation Operators</h1>
+        <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>Find and review private jet operators worldwide.</p>
+        <input type="text" placeholder="Search operators or regions..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #2a2d35', background: '#242830', color: '#fff', fontSize: '0.95rem', marginBottom: '1.5rem', boxSizing: 'border-box' }} />
         {loading ? (
           <p style={{ color: '#f0c040', textAlign: 'center' }}>Loading operators...</p>
         ) : filtered.length === 0 ? (
@@ -64,16 +51,10 @@ export default function HomePage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {filtered.map(op => (
-              
-                key={op.id}
-                href={`/operators/${op.id}`}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#242830', borderRadius: '10px', padding: '1.25rem 1.5rem', border: '1px solid #2a2d35', textDecoration: 'none' }}
-              >
+              <a key={op.id} href={`/operators/${op.id}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#242830', borderRadius: '10px', padding: '1.25rem 1.5rem', border: '1px solid #2a2d35', textDecoration: 'none' }}>
                 <div>
                   <div style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>{op.name}</div>
-                  <div style={{ color: '#6b7280', fontSize: '0.83rem', marginTop: '0.2rem', textTransform: 'capitalize' }}>
-                    {op.region} · {op.fleet_size} · {op.aircraft_count} aircraft
-                  </div>
+                  <div style={{ color: '#6b7280', fontSize: '0.83rem', marginTop: '0.2rem', textTransform: 'capitalize' }}>{op.region} · {op.fleet_size} · {op.aircraft_count} aircraft</div>
                 </div>
                 <span style={{ color: '#f0c040', fontSize: '1.2rem' }}>›</span>
               </a>

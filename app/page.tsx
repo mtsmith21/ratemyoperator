@@ -335,7 +335,7 @@ export default function HomePage() {
           </div>
 
           <div className="tabs">
-            {['ALL', 'FRACTIONAL', 'CHARTER', 'MEMBERSHIP'].map(t => (
+            {['ALL'].map(t => (
               <div key={t} className={`tab ${tab === t ? 'active' : ''}`} onClick={() => setTab(t)}>{t}</div>
             ))}
           </div>

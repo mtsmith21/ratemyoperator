@@ -247,7 +247,7 @@ export default function HomePage() {
         <div className="nav-links">
           <a href="/" className="nav-link">Operators</a>
           <a href="/review" className="nav-link">Reviews</a>
-          <a href="#" className="nav-link">About</a>
+          <a href="/about" className="nav-link">About</a>
           <a href="/review" className="nav-cta">Write a Review</a>
         </div>
       </nav>

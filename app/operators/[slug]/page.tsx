@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 interface Operator {
@@ -22,15 +23,26 @@ interface Review {
   created_at: string;
 }
 
-export default function OperatorPage({ params }: { params: { slug: string } }) {
+function Stars({ score }: { score: number }) {
+  return (
+    <span style={{ color: '#f0c040' }}>
+      {'★'.repeat(Math.round(score))}{'☆'.repeat(5 - Math.round(score))}
+    </span>
+  );
+}
+
+export default function OperatorPage() {
+  const params = useParams();
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug as string;
   const [operator, setOperator] = useState<Operator | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!slug) return;
     async function fetchData() {
-      const id = decodeURIComponent(params.slug);
+      const id = decodeURIComponent(slug);
       const { data: op, error: opErr } = await supabase.from('operators').select('id, name, fleet_size, region, aircraft_count').eq('id', id).maybeSingle();
       if (opErr || !op) { setError('Operator not found.'); setLoading(false); return; }
       setOperator(op);
@@ -39,19 +51,31 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
       setLoading(false);
     }
     fetchData();
-  }, [params.slug]);
+  }, [slug]);
 
   function avg(field: keyof Review) {
     if (!reviews.length) return 0;
     return reviews.reduce((sum, r) => sum + (r[field] as number), 0) / reviews.length;
   }
 
-  const overallAvg = reviews.length ? ((avg('safety_score') + avg('service_score') + avg('punctuality_score') + avg('value_score')) / 4).toFixed(1) : null;
+  const overallAvg = reviews.length
+    ? ((avg('safety_score') + avg('service_score') + avg('punctuality_score') + avg('value_score')) / 4).toFixed(1)
+    : null;
 
-  const stars = (score: number) => ('★'.repeat(Math.round(score)) + '☆'.repeat(5 - Math.round(score)));
+  if (loading) return (
+    <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#f0c040', fontFamily: 'sans-serif' }}>Loading...</p>
+    </main>
+  );
 
-  if (loading) return <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><p style={{ color: '#f0c040', fontFamily: 'sans-serif' }}>Loading...</p></main>;
-  if (error) return <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}><div style={{ textAlign: 'center' }}><p style={{ color: '#fff', fontSize: '1.2rem' }}>Operator not found</p><a href="/" style={{ color: '#f0c040' }}>Back to operators</a></div></main>;
+  if (error) return (
+    <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif' }}>
+      <div style={{ textAlign: 'center' }}>
+        <p style={{ color: '#fff', fontSize: '1.2rem' }}>Operator not found</p>
+        <a href="/" style={{ color: '#f0c040' }}>Back to operators</a>
+      </div>
+    </main>
+  );
 
   return (
     <main style={{ minHeight: '100vh', background: '#1a1d24', fontFamily: 'sans-serif' }}>
@@ -73,7 +97,7 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
             {overallAvg && (
               <div style={{ textAlign: 'center', background: '#1a1d24', borderRadius: '10px', padding: '1rem 1.5rem' }}>
                 <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#f0c040', lineHeight: 1 }}>{overallAvg}</div>
-                <span style={{ color: '#f0c040' }}>{stars(parseFloat(overallAvg))}</span>
+                <Stars score={parseFloat(overallAvg)} />
                 <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>{reviews.length} review{reviews.length !== 1 ? 's' : ''}</div>
               </div>
             )}
@@ -84,7 +108,7 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
                 <div key={label as string} style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>{label}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff' }}>{(score as number).toFixed(1)}</div>
-                  <span style={{ color: '#f0c040', fontSize: '0.8rem' }}>{stars(score as number)}</span>
+                  <Stars score={score as number} />
                 </div>
               ))}
             </div>
@@ -106,7 +130,7 @@ export default function OperatorPage({ params }: { params: { slug: string } }) {
                     {[['Safety', review.safety_score], ['Service', review.service_score], ['Punctuality', review.punctuality_score], ['Value', review.value_score]].map(([label, score]) => (
                       <div key={label as string}>
                         <div style={{ fontSize: '0.7rem', color: '#9ca3af', textTransform: 'uppercase' }}>{label}</div>
-                        <span style={{ color: '#f0c040', fontSize: '0.8rem' }}>{stars(score as number)}</span>
+                        <Stars score={score as number} />
                       </div>
                     ))}
                   </div>

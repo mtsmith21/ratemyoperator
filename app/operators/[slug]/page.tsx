@@ -115,6 +115,7 @@ export default function OperatorPage() {
             </div>
           )}
           <a href={`/review?operator=${operator?.id}`} style={{ display: 'block', textAlign: 'center', marginTop: '1.5rem', padding: '0.85rem', background: '#f0c040', color: '#1a1d24', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Write a Review for {operator?.name}</a>
+          <a href={`/claim?operator=${operator?.id}`} style={{ display: "block", textAlign: "center", marginTop: "0.75rem", padding: "0.75rem", background: "transparent", color: "#6b7280", borderRadius: "6px", textDecoration: "none", fontSize: "0.8rem", border: "1px solid #2a2d35" }}>🏢 Is this your company? Claim this profile</a>
           {!operator?.is_claimed && <a href={`/claim?operator=${operator?.id}`} style={{ display: "block", textAlign: "center", marginTop: "0.75rem", padding: "0.65rem", background: "transparent", color: "#6b7280", borderRadius: "6px", textDecoration: "none", fontSize: "0.8rem", border: "1px solid #2a2d35" }}>🏢 Is this your company? Claim this profile</a>}
         </div>
         <h2 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem' }}>{reviews.length > 0 ? `${reviews.length} Review${reviews.length !== 1 ? 's' : ''}` : 'No Reviews Yet'}</h2>

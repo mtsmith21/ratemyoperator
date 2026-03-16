@@ -46,6 +46,7 @@ export default function OperatorPage() {
       const { data: op, error: opErr } = await supabase.from('operators').select('id, name, fleet_size, region, aircraft_count').eq('id', id).maybeSingle();
       if (opErr || !op) { setError('Operator not found.'); setLoading(false); return; }
       setOperator(op);
+      document.title = `${op.name} Reviews | RateMyOperator`;
       const { data: reviewData } = await supabase.from('reviews').select('*').eq('operator_id', op.id).eq('is_approved', true).order('created_at', { ascending: false });
       if (reviewData) setReviews(reviewData);
       setLoading(false);
@@ -84,7 +85,7 @@ export default function OperatorPage() {
           <span style={{ fontSize: '1.5rem' }}>✈</span>
           <span style={{ fontSize: '1.3rem', fontWeight: 700, color: '#fff' }}>Rate<span style={{ color: '#f0c040' }}>My</span>Operator</span>
         </a>
-        <a href="/review" style={{ background: '#f0c040', color: '#1a1d24', padding: '0.4rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>Write a Review</a>
+        <a href={`/review?operator=${operator?.id}`} style={{ background: '#f0c040', color: '#1a1d24', padding: '0.4rem 1rem', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.85rem' }}>Write a Review</a>
       </header>
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1.5rem' }}>
         <a href="/" style={{ color: '#f0c040', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600 }}>← All operators</a>
@@ -113,13 +114,13 @@ export default function OperatorPage() {
               ))}
             </div>
           )}
-          <a href="/review" style={{ display: 'block', textAlign: 'center', marginTop: '1.5rem', padding: '0.85rem', background: '#f0c040', color: '#1a1d24', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Write a Review for {operator?.name}</a>
+          <a href={`/review?operator=${operator?.id}`} style={{ display: 'block', textAlign: 'center', marginTop: '1.5rem', padding: '0.85rem', background: '#f0c040', color: '#1a1d24', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.95rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Write a Review for {operator?.name}</a>
         </div>
         <h2 style={{ color: '#fff', fontSize: '1.2rem', marginBottom: '1rem' }}>{reviews.length > 0 ? `${reviews.length} Review${reviews.length !== 1 ? 's' : ''}` : 'No Reviews Yet'}</h2>
         {reviews.length === 0 ? (
           <div style={{ background: '#242830', borderRadius: '12px', padding: '3rem', textAlign: 'center', border: '1px solid #2a2d35' }}>
             <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>Be the first to review {operator?.name}</p>
-            <a href="/review" style={{ padding: '0.75rem 2rem', background: '#1a1d24', color: '#f0c040', border: '1px solid #f0c040', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>Write a Review</a>
+            <a href={`/review?operator=${operator?.id}`} style={{ padding: '0.75rem 2rem', background: '#1a1d24', color: '#f0c040', border: '1px solid #f0c040', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>Write a Review</a>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

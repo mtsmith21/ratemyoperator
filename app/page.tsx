@@ -364,7 +364,7 @@ export default function HomePage() {
                     ) : (
                       <div className="no-reviews">No reviews yet</div>
                     )}
-                    <div className="op-review-btn">Review →</div>
+                    <span onClick={(e) => { e.preventDefault(); window.location.href=`/review?operator=${op.id}`; }} className="op-review-btn">Review →</span>
                   </div>
                 </a>
               ))}

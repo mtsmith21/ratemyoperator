@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 interface Operator {
+  is_claimed?: boolean;
   id: string;
   name: string;
   fleet_size: string;

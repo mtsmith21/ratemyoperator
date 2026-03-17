@@ -94,7 +94,7 @@ export default function OperatorPage() {
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <h1 style={{ color: '#fff', fontSize: '2rem', margin: '0 0 0.5rem', fontWeight: 800 }}>{operator?.name}</h1>
-              <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem', textTransform: 'capitalize' }}>{operator?.fleet_size} · {operator?.region} · {operator?.aircraft_count} aircraft</p>
+              <p style={{ color: '#6b7280', margin: 0, fontSize: '0.9rem', textTransform: 'capitalize' }}>{operator?.region} · {operator?.aircraft_count} aircraft</p>
             </div>
             {overallAvg && (
               <div style={{ textAlign: 'center', background: '#1a1d24', borderRadius: '10px', padding: '1rem 1.5rem' }}>

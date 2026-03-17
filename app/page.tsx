@@ -350,7 +350,7 @@ export default function HomePage() {
                 <a key={op.id} href={`/operators/${op.id}`} className="op-card">
                   <div>
                     <div className="op-card-name">{op.name}</div>
-                    <div className="op-card-meta">{op.region} · {op.fleet_size} · {op.aircraft_count} aircraft</div>
+                    <div className="op-card-meta">{op.region} · {op.aircraft_count} aircraft</div>
                   </div>
                   <div className="op-card-footer">
                     {(op.review_count || 0) > 0 ? (

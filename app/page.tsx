@@ -121,18 +121,18 @@ export default function HomePage() {
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         :root {
-          --bg: #0D0F12;
-          --bg2: #13161B;
-          --bg3: #1A1E25;
-          --border: #242830;
-          --border2: #2E3340;
+          --bg: #F8F7F4;
+          --bg2: #FFFFFF;
+          --bg3: #F0EDE8;
+          --border: #E0DDD6;
+          --border2: #C8C4BC;
           --gold: #D4AF37;
           --gold2: #F0C040;
           --gold-dim: rgba(212,175,55,0.12);
           --gold-border: rgba(212,175,55,0.25);
-          --text: #E8EAF0;
-          --text2: #8B929E;
-          --text3: #555D6B;
+          --text: #1a1a1a;
+          --text2: #555550;
+          --text3: #888880;
           --green: #2DD4BF;
           --red: #F87171;
         }

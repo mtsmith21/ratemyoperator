@@ -141,7 +141,7 @@ export default function HomePage() {
         input, select { outline: none; font-family: inherit; }
         
         .nav { position: sticky; top: 0; z-index: 100; background: rgba(13,15,18,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; }
-        .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; color: var(--text); }
+        .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; color: #FFFFFF; }
         .nav-logo span { color: var(--gold); }
         .nav-links { display: flex; align-items: center; gap: 2rem; }
         .nav-link { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text2); transition: color 0.2s; }

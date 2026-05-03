@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 interface Aircraft {
   id: string;
   operator_name: string;
+  dba_name: string | null;
   aircraft_type: string;
   tail_number: string;
 }
@@ -37,7 +38,7 @@ export default function AircraftDirectoryPage() {
     setLoading(true);
     let query = supabase
       .from('aircraft')
-      .select('id, operator_name, aircraft_type, tail_number', { count: 'exact' })
+      .select('id, operator_name, dba_name, aircraft_type, tail_number', { count: 'exact' })
       .order('operator_name', { ascending: true })
       .range(pageVal * PAGE_SIZE, (pageVal + 1) * PAGE_SIZE - 1);
 
@@ -47,7 +48,7 @@ export default function AircraftDirectoryPage() {
 
     if (searchVal.trim()) {
       query = query.or(
-        `operator_name.ilike.%${searchVal}%,tail_number.ilike.%${searchVal}%,aircraft_type.ilike.%${searchVal}%`
+        `operator_name.ilike.%${searchVal}%,dba_name.ilike.%${searchVal}%,tail_number.ilike.%${searchVal}%,aircraft_type.ilike.%${searchVal}%`
       );
     }
 
@@ -202,7 +203,10 @@ export default function AircraftDirectoryPage() {
               ) : (
                 aircraft.map(ac => (
                   <tr key={ac.id}>
-                    <td style={{ fontWeight: 600 }}>{ac.operator_name}</td>
+                    <td style={{ fontWeight: 600 }}>
+                      {ac.dba_name ? ac.dba_name : ac.operator_name}
+                      {ac.dba_name && <span style={{ fontSize: '0.72rem', color: 'var(--text3)', fontWeight: 400, marginLeft: '0.4rem' }}>({ac.operator_name})</span>}
+                    </td>
                     <td style={{ color: 'var(--text2)' }}>{ac.aircraft_type}</td>
                     <td><span className="tail-badge">{ac.tail_number}</span></td>
                     <td style={{ textAlign: 'right' }}>

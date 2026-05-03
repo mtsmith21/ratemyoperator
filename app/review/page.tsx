@@ -81,7 +81,7 @@ function ReviewForm() {
     supabase
       .from('aircraft')
       .select('id, tail_number, aircraft_type')
-      .ilike('operator_name', `%${selectedOperator.name}%`)
+      .or(`operator_name.ilike.%${selectedOperator.name}%,dba_name.ilike.%${selectedOperator.name}%`)
       .order('tail_number')
       .then(({ data }) => {
         setOperatorAircraft(data || []);

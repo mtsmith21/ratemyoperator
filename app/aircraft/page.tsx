@@ -126,6 +126,25 @@ export default function AircraftDirectoryPage() {
         .review-link { background: var(--gold-dim); border: 1px solid var(--gold-border); color: var(--gold); padding: 0.3rem 0.7rem; border-radius: 5px; font-size: 0.72rem; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
         .review-link:hover { background: var(--gold); color: #0D0F12; }
 
+        /* Mobile cards */
+        .card-list { display: none; flex-direction: column; gap: 0.75rem; }
+        .ac-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .ac-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+        .ac-card-name { font-weight: 700; font-size: 0.9rem; color: var(--text); line-height: 1.3; }
+        .ac-card-dba { font-size: 0.72rem; color: var(--text3); }
+        .ac-card-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .ac-card-type { font-size: 0.78rem; color: var(--text2); }
+
+        @media (max-width: 640px) {
+          .nav-links { display: none; }
+          .table-wrap { display: none; }
+          .card-list { display: flex; }
+          .search-inner { flex-direction: column; align-items: stretch; }
+          .filter-select { width: 100%; }
+          .main { padding: 1rem; }
+          .page-header { padding: 1.5rem 1rem 1.25rem; }
+        }
+
         .pagination { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0; flex-wrap: wrap; gap: 1rem; }
         .page-btn { background: var(--bg2); border: 1px solid var(--border); color: var(--text); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
         .page-btn:hover:not(:disabled) { border-color: var(--gold-border); color: var(--gold); }
@@ -222,6 +241,37 @@ export default function AircraftDirectoryPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile card view */}
+        <div className="card-list">
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text3)' }}>Loading...</div>
+          ) : aircraft.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text3)' }}>No aircraft found.</div>
+          ) : (
+            aircraft.map(ac => (
+              <div key={ac.id} className="ac-card">
+                <div className="ac-card-top">
+                  <div>
+                    <div className="ac-card-name">{ac.dba_name || ac.operator_name}</div>
+                    {ac.dba_name && <div className="ac-card-dba">{ac.operator_name}</div>}
+                  </div>
+                  <a
+                    href={`/review?tail=${ac.tail_number}&operator_name=${encodeURIComponent(ac.operator_name)}`}
+                    className="review-link"
+                    style={{ flexShrink: 0 }}
+                  >
+                    Review →
+                  </a>
+                </div>
+                <div className="ac-card-meta">
+                  <span className="tail-badge">{ac.tail_number}</span>
+                  <span className="ac-card-type">{ac.aircraft_type}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
 
         {totalPages > 1 && (

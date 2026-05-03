@@ -28,6 +28,12 @@ function StarRating({ label, value, onChange }: { label: string; value: number; 
   );
 }
 
+interface Aircraft {
+  id: string;
+  tail_number: string;
+  aircraft_type: string;
+}
+
 function ReviewForm() {
   const searchParams = useSearchParams();
   const [operators, setOperators] = useState<Operator[]>([]);
@@ -45,6 +51,8 @@ function ReviewForm() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
   const [user, setUser] = useState<any>(null);
+  const [operatorAircraft, setOperatorAircraft] = useState<Aircraft[]>([]);
+  const [aircraftLoading, setAircraftLoading] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -54,7 +62,6 @@ function ReviewForm() {
     supabase.from('operators').select('id, name, fleet_size').order('name').then(({ data }) => {
       if (data) {
         setOperators(data);
-        // Pre-select operator from URL param
         const operatorId = searchParams.get('operator');
         if (operatorId) {
           const found = data.find((o: Operator) => o.id === operatorId);
@@ -62,7 +69,25 @@ function ReviewForm() {
         }
       }
     });
+    // Pre-fill tail from aircraft directory link
+    const tailParam = searchParams.get('tail');
+    if (tailParam) setTailNumber(tailParam);
   }, []);
+
+  // When operator is selected, load their aircraft from the registry
+  useEffect(() => {
+    if (!selectedOperator) { setOperatorAircraft([]); return; }
+    setAircraftLoading(true);
+    supabase
+      .from('aircraft')
+      .select('id, tail_number, aircraft_type')
+      .ilike('operator_name', `%${selectedOperator.name}%`)
+      .order('tail_number')
+      .then(({ data }) => {
+        setOperatorAircraft(data || []);
+        setAircraftLoading(false);
+      });
+  }, [selectedOperator]);
 
   const filtered = operators.filter(o => o.name.toLowerCase().includes(search.toLowerCase())).slice(0, 8);
 
@@ -150,6 +175,31 @@ function ReviewForm() {
           </div>
           <div style={{ background: '#f4f1eb', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.5rem' }}>
             <p style={{ fontSize: '0.82rem', fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>Optional — helps verify your review</p>
+
+            {/* Aircraft picker — shown when operator has known tails */}
+            {selectedOperator && (operatorAircraft.length > 0 || aircraftLoading) && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.3rem' }}>
+                  Select Aircraft {aircraftLoading ? '(loading...)' : `(${operatorAircraft.length} on file)`}
+                </label>
+                <select
+                  value={tailNumber}
+                  onChange={e => setTailNumber(e.target.value)}
+                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.9rem', color: '#1a1d24', boxSizing: 'border-box', background: '#fff', fontFamily: 'monospace' }}
+                >
+                  <option value="">— Select a tail number —</option>
+                  {operatorAircraft.map(ac => (
+                    <option key={ac.id} value={ac.tail_number}>
+                      {ac.tail_number} · {ac.aircraft_type}
+                    </option>
+                  ))}
+                </select>
+                <p style={{ fontSize: '0.72rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+                  Or type it manually below if not listed
+                </p>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: '#6b7280', marginBottom: '0.3rem' }}>Tail Number</label>

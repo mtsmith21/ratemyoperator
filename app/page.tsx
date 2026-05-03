@@ -173,6 +173,11 @@ export default function HomePage() {
         .stat-highlight-value { font-size: 1rem; font-weight: 700; color: var(--text); }
         .stat-highlight-sub { font-size: 0.82rem; color: var(--text2); margin-top: 0.2rem; }
 
+        .trust-bar { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 0.85rem 2rem; }
+        .trust-bar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 2.5rem; flex-wrap: wrap; }
+        .trust-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; font-weight: 600; color: var(--text2); }
+        .trust-item span { font-size: 0.95rem; }
+
         .search-bar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 1.25rem 2rem; }
         .search-inner { max-width: 1200px; margin: 0 auto; display: flex; gap: 1rem; align-items: center; }
         .search-wrap { flex: 1; position: relative; }
@@ -299,6 +304,15 @@ export default function HomePage() {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* TRUST BAR */}
+      <div className="trust-bar">
+        <div className="trust-bar-inner">
+          <div className="trust-item"><span>🔒</span> 100% Anonymous Reviews</div>
+          <div className="trust-item"><span>✓</span> Verified Flight Experiences</div>
+          <div className="trust-item"><span>✈</span> Independent & Unbiased</div>
         </div>
       </div>
 

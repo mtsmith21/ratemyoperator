@@ -3,9 +3,9 @@
 export default function AboutPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#0D0F12', fontFamily: 'sans-serif' }}>
-      <nav style={{ background: 'rgba(13,15,18,0.95)', borderBottom: '1px solid #242830', padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px' }}>
+      <nav style={{ background: 'rgba(13,15,18,0.95)', borderBottom: '1px solid #242830', padding: '0.75rem clamp(1rem, 4vw, 2rem)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', minHeight: '60px' }}>
         <a href="/" style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>Rate<span style={{ color: '#D4AF37' }}>My</span>Operator</a>
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 'clamp(1rem, 4vw, 2rem)', alignItems: 'center', flexWrap: 'wrap' }}>
           <a href="/" style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#8B929E' }}>Operators</a>
           <a href="/about" style={{ fontSize: '0.78rem', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#D4AF37' }}>About</a>
           <a href="/review" style={{ background: '#D4AF37', color: '#0D0F12', padding: '0.5rem 1.25rem', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Write a Review</a>

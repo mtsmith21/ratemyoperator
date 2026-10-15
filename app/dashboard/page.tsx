@@ -16,7 +16,7 @@ export default function OperatorDashboard() {
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) { window.location.href = '/login'; return; }
+      if (!data.user) { window.location.href = '/login?next=%2Fdashboard'; return; }
       const { data: op } = await supabase.from('operators').select('*').eq('claimed_by', data.user.id).maybeSingle();
       if (!op) { window.location.href = '/'; return; }
       setOperator(op);

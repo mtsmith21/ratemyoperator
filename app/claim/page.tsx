@@ -2,6 +2,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { slugify } from '@/lib/slug';
+
+// Where claims go if the operator_claims table can't take them yet (see PR notes).
+const CLAIMS_EMAIL = 'mike@ratemyoperator.com';
 
 interface Operator {
   id: string;
@@ -18,6 +22,8 @@ function ClaimForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [title, setTitle] = useState('');
+  const [phone, setPhone] = useState('');
+  const [fallback, setFallback] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -30,21 +36,44 @@ function ClaimForm() {
   }, [operatorId]);
 
   async function handleSubmit() {
-    if (!name || !email) return setError('Please fill in your name and email.');
-    if (!email.includes('@')) return setError('Please enter a valid email address.');
+    if (!name.trim() || !title.trim() || !email.trim() || !phone.trim()) return setError('Please fill in all four fields.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Please enter a valid email address.');
+    if (phone.replace(/\D/g, '').length < 7) return setError('Please enter a valid phone number.');
     setLoading(true);
     setError('');
-    const { error: err } = await supabase.from('operator_claims').insert({
+    const base = {
       operator_id: operatorId,
-      contact_name: name,
-      contact_email: email,
-      contact_title: title || null,
+      contact_name: name.trim(),
+      contact_email: email.trim(),
+      contact_title: title.trim(),
       status: 'pending',
-    });
+    };
+    let { error: err } = await supabase.from('operator_claims').insert({ ...base, contact_phone: phone.trim() });
+    // Until the contact_phone column exists, keep the phone with the title rather than losing it.
+    if (err && /contact_phone|PGRST204|42703/.test(`${err.code} ${err.message}`)) {
+      ({ error: err } = await supabase.from('operator_claims').insert({ ...base, contact_title: `${title.trim()} · Phone: ${phone.trim()}` }));
+    }
     setLoading(false);
-    if (err) setError(err.message);
+    if (err) setFallback(true);
     else setSubmitted(true);
   }
+
+  const mailto = `mailto:${CLAIMS_EMAIL}?subject=${encodeURIComponent(`Claim: ${operator?.name || 'operator page'}`)}&body=${encodeURIComponent(
+    `Operator: ${operator?.name || ''} (${operatorId || ''})\nName: ${name}\nTitle: ${title}\nCompany email: ${email}\nPhone: ${phone}`
+  )}`;
+
+  if (fallback) return (
+    <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', padding: '1rem' }}>
+      <div style={{ background: '#fff', borderRadius: '12px', padding: '2.5rem', maxWidth: '480px', width: '100%', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '1.4rem', color: '#1a1d24', marginBottom: '0.75rem' }}>One more step</h2>
+        <p style={{ color: '#6b7280', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+          We couldn&apos;t save your claim online just now. Tap below to send it by email instead. Your details are already filled in.
+        </p>
+        <a href={mailto} style={{ display: 'inline-block', padding: '0.85rem 2rem', background: '#1a1d24', color: '#f0c040', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>Email my claim</a>
+        <p style={{ color: '#9ca3af', fontSize: '0.8rem', marginTop: '1rem' }}>or write to {CLAIMS_EMAIL}</p>
+      </div>
+    </main>
+  );
 
   if (submitted) return (
     <main style={{ minHeight: '100vh', background: '#1a1d24', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'sans-serif', padding: '1rem' }}>
@@ -52,7 +81,7 @@ function ClaimForm() {
         <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
         <h2 style={{ fontSize: '1.5rem', color: '#1a1d24', marginBottom: '0.75rem' }}>Claim Submitted!</h2>
         <p style={{ color: '#6b7280', marginBottom: '2rem', lineHeight: 1.6 }}>
-          We'll verify your claim for <strong>{operator?.name}</strong> and get back to you at <strong>{email}</strong> within 24 hours.
+          We&apos;ll verify your claim for <strong>{operator?.name}</strong> and get back to you at <strong>{email}</strong> within 24 hours.
         </p>
         <a href="/" style={{ display: 'inline-block', padding: '0.75rem 2rem', background: '#1a1d24', color: '#f0c040', borderRadius: '6px', textDecoration: 'none', fontWeight: 700 }}>Back to Operators</a>
       </div>
@@ -62,11 +91,11 @@ function ClaimForm() {
   return (
     <main style={{ minHeight: '100vh', background: '#1a1d24', fontFamily: 'sans-serif', padding: '2rem 1rem' }}>
       <div style={{ maxWidth: '520px', margin: '0 auto' }}>
-        <a href={operator ? `/operators/${operator.id}` : '/'} style={{ color: '#f0c040', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1.5rem' }}>← Back</a>
+        <a href={operator ? `/operator/${slugify(operator.name)}` : '/'} style={{ color: '#f0c040', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: '1.5rem' }}>← Back</a>
         <div style={{ background: '#fff', borderRadius: '12px', padding: '2.5rem' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>✈</div>
-            <h1 style={{ fontSize: '1.5rem', color: '#1a1d24', marginBottom: '0.5rem' }}>Claim Your Operator Profile</h1>
+            <h1 style={{ fontSize: '1.5rem', color: '#1a1d24', marginBottom: '0.5rem' }}>Claim this page</h1>
             {operator && <p style={{ color: '#6b7280', fontSize: '0.9rem' }}>Claiming profile for <strong>{operator.name}</strong></p>}
           </div>
 
@@ -82,13 +111,18 @@ function ClaimForm() {
           </div>
 
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Work Email *</label>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Company Email *</label>
             <input type="email" placeholder="john@operator.com" value={email} onChange={e => setEmail(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }} />
           </div>
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Job Title</label>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Job Title *</label>
             <input type="text" placeholder="e.g. Director of Operations" value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }} />
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone *</label>
+            <input type="tel" placeholder="(312) 555-0100" value={phone} onChange={e => setPhone(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', border: '1.5px solid #e2ddd4', borderRadius: '6px', fontSize: '0.95rem', color: '#1a1d24', boxSizing: 'border-box' }} />
           </div>
 
           <div style={{ background: '#f4f1eb', borderRadius: '8px', padding: '1rem', marginBottom: '1.5rem', fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.6 }}>

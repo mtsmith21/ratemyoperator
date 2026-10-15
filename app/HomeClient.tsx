@@ -206,6 +206,12 @@ export default function HomeClient({ initialOperators, initialReviews }: { initi
           .sidebar { display: none; }
           .nav-links { display: none; }
         }
+        @media (max-width: 600px) {
+          .search-bar { padding: 1rem; }
+          .search-inner { flex-wrap: wrap; gap: 0.75rem; }
+          .search-wrap { flex: 1 1 100%; }
+          .filter-select { flex: 1 1 0; min-width: 0; }
+        }
       `}</style>
 
       {/* NAV */}

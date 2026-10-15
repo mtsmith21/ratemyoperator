@@ -2,6 +2,8 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { loginUrl } from '@/lib/authRedirect';
+import { slugify } from '@/lib/slug';
 
 interface Operator {
   id: string;
@@ -56,7 +58,8 @@ function ReviewForm() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) window.location.href = '/login';
+      // Keep the operator/tail in the URL so they come back to a pre-filled form after signing in.
+      if (!data.user) window.location.href = loginUrl(window.location.pathname + window.location.search);
       else setUser(data.user);
     });
     supabase.from('operators').select('id, name, fleet_size').order('name').then(({ data }) => {
@@ -64,7 +67,9 @@ function ReviewForm() {
         setOperators(data);
         const operatorId = searchParams.get('operator');
         if (operatorId) {
-          const found = data.find((o: Operator) => o.id === operatorId);
+          // Accept either the operator id or its page slug (e.g. ?operator=jet-linx).
+          const found = data.find((o: Operator) => o.id === operatorId)
+            || data.find((o: Operator) => slugify(o.name) === operatorId.toLowerCase());
           if (found) { setSelectedOperator(found); setSearch(found.name); }
         }
       }

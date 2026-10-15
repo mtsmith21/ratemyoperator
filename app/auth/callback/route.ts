@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { safeNext } from '@/lib/authRedirect';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -13,5 +14,6 @@ export async function GET(request: NextRequest) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL('/', request.url));
+  // Send them back to where they started (e.g. the review form), same site only.
+  return NextResponse.redirect(new URL(safeNext(searchParams.get('next')), request.url));
 }

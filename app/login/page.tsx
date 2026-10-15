@@ -1,8 +1,13 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { safeNext, rememberNext } from '@/lib/authRedirect';
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get('next'));
+  const returningToReview = next.startsWith('/review');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -10,18 +15,33 @@ export default function LoginPage() {
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Already signed in? Go straight to where they were headed.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session && next !== '/') window.location.replace(next);
+    });
+  }, [next]);
+
   async function handleSubmit() {
     setLoading(true);
     setMessage('');
     setIsError(false);
     if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password });
+      if (next !== '/') rememberNext(next);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
+      });
       if (error) { setMessage(error.message); setIsError(true); }
-      else setMessage('Check your email for a confirmation link!');
+      else if (data.session) { window.location.href = next; return; }
+      else setMessage(returningToReview
+        ? 'Check your email for a confirmation link. It will bring you back to your review.'
+        : 'Check your email for a confirmation link!');
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) { setMessage(error.message); setIsError(true); }
-      else window.location.href = '/';
+      else { window.location.href = next; return; }
     }
     setLoading(false);
   }
@@ -35,6 +55,11 @@ export default function LoginPage() {
             Rate<span style={{ color: '#f0c040' }}>My</span>Operator
           </h1>
           <p style={{ color: '#6b7280', fontSize: '0.85rem', margin: '0.25rem 0 0' }}>Private Jet Review Platform</p>
+          {returningToReview && (
+            <p style={{ color: '#374151', fontSize: '0.88rem', margin: '1rem 0 0', lineHeight: 1.5 }}>
+              Sign in or create a free account to post your review. You&apos;ll go right back to it.
+            </p>
+          )}
         </div>
 
         <div style={{ display: 'flex', background: '#f4f1eb', borderRadius: '8px', padding: '4px', marginBottom: '1.75rem' }}>
@@ -107,4 +132,8 @@ export default function LoginPage() {
       </div>
     </main>
   );
+}
+
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>;
 }

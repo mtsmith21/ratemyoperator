@@ -3,8 +3,8 @@ import { operatorTag } from '@/lib/operatorTags';
 import HomeClient, { type Operator, type Review } from './HomeClient';
 
 // Server-rendered so the operator count and directory are in the HTML (and visible to Google).
-// Refreshed hourly.
-export const revalidate = 3600;
+// Refreshed every minute so newly approved reviews show up quickly.
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [ops, reviewData] = await Promise.all([getOperators(), getApprovedReviews()]);

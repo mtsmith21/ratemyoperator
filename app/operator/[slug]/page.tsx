@@ -7,8 +7,8 @@ import { operatorTag } from '@/lib/operatorTags';
 import { ntsbEventsForFleet, ntsbEventsForTail, ntsbLink, formatNtsbDate, formatEventDate, NTSB_SINCE_YEAR, INJURY_COLORS } from '@/lib/ntsb';
 import { fleetAge, yearBuilt, formatRegistryDate } from '@/lib/fleetAge';
 
-// Pages are built at deploy time and refreshed hourly (ISR); new operators render on first visit.
-export const revalidate = 3600;
+// Pages are built at deploy time and refreshed every minute (ISR); new operators render on first visit.
+export const revalidate = 60;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

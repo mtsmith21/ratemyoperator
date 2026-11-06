@@ -8,7 +8,7 @@ import { ntsbEventsForFleet, ntsbEventsForTail, ntsbLink, formatNtsbDate, format
 import { fleetAge, yearBuilt, formatRegistryDate } from '@/lib/fleetAge';
 
 // Pages are built at deploy time and refreshed every minute (ISR); new operators render on first visit.
-export const revalidate = 60;
+export const revalidate = 86400; // 24 hours
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

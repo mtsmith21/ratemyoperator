@@ -3,7 +3,7 @@ import { getOperators } from '@/lib/data';
 
 const BASE = 'https://www.ratemyoperator.com';
 
-export const revalidate = 3600;
+export const revalidate = 86400; // 24 hours
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ops = await getOperators();

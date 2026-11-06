@@ -4,7 +4,7 @@ import HomeClient, { type Operator, type Review } from './HomeClient';
 
 // Server-rendered so the operator count and directory are in the HTML (and visible to Google).
 // Refreshed every minute so newly approved reviews show up quickly.
-export const revalidate = 60;
+export const revalidate = 86400; // 24 hours
 
 export default async function HomePage() {
   const [ops, reviewData] = await Promise.all([getOperators(), getApprovedReviews()]);
